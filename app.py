@@ -13,12 +13,12 @@ import requests
 app = Flask(__name__)
 
 # ============ CONFIG (env vars preferred on Render) ============
-CLIENT_ID = os.environ.get("CLIENT_ID", "YOUR_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "YOUR_CLIENT_SECRET")
+CLIENT_ID = os.environ.get("CLIENT_ID", "1545748406985691148")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "bbz1QvQchcI7uHbUnPUJVKHxlK2XT4ak")
 # Must match Discord portal + bot.py exactly, e.g. https://your-app.onrender.com/callback
-REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://YOUR-APP.onrender.com/callback")
+REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://oauth-server-fwmz.onrender.com/callback")
 # Shared secret so only your bot can pull results
-BOT_API_KEY = os.environ.get("BOT_API_KEY", "change-me-to-random-string")
+BOT_API_KEY = os.environ.get("BOT_API_KEY", "pulsar_7f3a9c2e1b8d4e6a0f5c9b2d")
 PORT = int(os.environ.get("PORT", "8080"))
 # ==============================================================
 
