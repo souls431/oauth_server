@@ -156,7 +156,28 @@ def callback():
             state=state, code=code, user=None, user_id=None, email=None, show_close=True
         ), 400
 
-    # Exchange code
+    # Always stash the code first. Render IPs often get Cloudflare 429 from
+    # discord.com/api/oauth2/token — the bot will exchange from its own IP.
+    handed = {
+        "status": "success",
+        "needs_exchange": True,
+        "ts": time.time(),
+        "verified_at": utc_now(),
+        "code": code,
+        "state": state,
+        "access_token": None,
+        "refresh_token": None,
+        "scope": None,
+        "user": {},
+    }
+    RESULTS[state] = handed
+    PENDING[state] = {"status": "success", "ts": time.time(), "code": code}
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "PulsarEyeOAuth/1.0 (+https://oauth-server-fwmz.onrender.com)",
+        "Accept": "application/json",
+    }
     token_res = requests.post(
         "https://discord.com/api/v10/oauth2/token",
         data={
@@ -166,24 +187,19 @@ def callback():
             "code": code,
             "redirect_uri": REDIRECT_URI,
         },
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers=headers,
         timeout=15,
     )
 
     if token_res.status_code != 200:
-        detail = token_res.text[:400]
-        try:
-            detail = token_res.json().get("error_description") or token_res.json().get("error") or detail
-        except Exception:
-            pass
-        PENDING[state] = {"status": "failed", "error": detail, "ts": time.time(), "code": code}
+        # Not a user-facing failure. Code is already queued for the bot.
         return render_template_string(
             GUI_TEMPLATE,
-            title="Token Exchange Failed",
-            message=f"{token_res.status_code}: {detail}",
-            status_class="err",
-            state=state, code=code, user=None, user_id=None, email=None, show_close=True
-        ), 400
+            title="Authorized",
+            message="Discord approved the login. Close this tab and return to Discord — the bot will finish verification.",
+            status_class="ok",
+            state=state, code=None, user=None, user_id=None, email=None, show_close=True
+        )
 
     token_data = token_res.json()
     access = token_data.get("access_token")
